@@ -8,3 +8,12 @@ create table dpuportstatusresults(
 	lineratedown NUMERIC,
 	completed_at TEXT
 );
+
+create table speedtestresults(
+	id INT,
+	server varchar(10),
+	latencyMs NUMERIC,
+	downloadSpeedKbps NUMERIC,
+	uploadSpeedKbps NUMERIC,
+	date TEXT
+);

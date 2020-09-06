@@ -5,7 +5,7 @@ import os
 import aussiebb.portal as portal
 from prettytable import PrettyTable
 import sqlite3
-conn = sqlite3.connect('dpuportstatus.db')
+conn = sqlite3.connect('aussiebbmgt.db')
 
 
 p = portal.AussiePortal(os.environ.get('AUSSIE_USERNAME'),
@@ -19,9 +19,9 @@ for service_type in c['services']:
         service_id = service['service_id']
         services.append((service_type, service_id))
 
-c = conn.cursor()
+cursor = conn.cursor()
 tests = p.tests(service_id)
-results = c.execute('select id from dpuportstatusresults')
+results = cursor.execute('select id from dpuportstatusresults')
 ids = []
 for i in results.fetchall():
     ids.append(i[0])
@@ -46,7 +46,7 @@ for result in tests:
                        lineup,linedown,
                        output['completed_at']))
             print(insertline)
-            c.execute(insertline)
+            cursor.execute(insertline)
             conn.commit()
 conn.close()
 

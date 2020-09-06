@@ -4,7 +4,7 @@ import dateutil.parser
 import matplotlib.pyplot as plt 
 import sqlite3
 from datetime import datetime
-conn = sqlite3.connect('dpuportstatus.db')
+conn = sqlite3.connect('aussiebbmgt.db')
 
 c = conn.cursor()
 
@@ -35,6 +35,6 @@ plt.legend()
 plt.gcf().autofmt_xdate()
   
 # function to show the plot 
-plt.show()
+plt.savefig('linesync.png', bbox_inches='tight')
 
 conn.close()
