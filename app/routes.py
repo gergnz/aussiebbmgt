@@ -1,19 +1,16 @@
-from app import app
-from flask import render_template, request, abort
-from flask_restful import Resource, Api
-from marshmallow import Schema, fields
 import datetime
-import dateutil.parser
 import sqlite3
-import json
+from flask import render_template, request
+from flask_restful import Resource, Api
+from app import app
 
 api = Api(app)
 
 def dict_factory(cursor, row):
-    d = {}
+    data = {}
     for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
+        data[col[0]] = row[idx]
+    return data
 
 class SpeedTestResults(Resource):
     def get(self):
