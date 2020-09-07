@@ -1,7 +1,14 @@
-function getChartData(url) {
+function getChartData(url, fromdate='', todate='') {
+    var speedurl = url+"/speedtestresults";
+		if (fromdate !== '') {
+        speedurl = speedurl+"?fromdate="+fromdate;
+		}
+	  if ( todate !== '') {
+        speedurl = speedurl+"&todate="+todate;
+		}
     $("#loadingMessage").html('<img src="/static/giphy.gif" alt="" srcset="">');
     $.getJSON({
-        url: url+"/speedtestresults?fromdate=2020-08-01T00:00:00",
+        url: speedurl,
         success: function (result) {
             var data = [];
             var up = [];        
@@ -18,16 +25,23 @@ function getChartData(url) {
             });
             data.push(down);
             data.push(up);
-            getnextChartData(url, data);
+            getnextChartData(url, data, fromdate, todate);
         },
         error: function (err) {
             $("#loadingSpeedMessage").html("Error");
         }
     });
 }
-function getnextChartData(url, speeddata) {
+function getnextChartData(url, speeddata, fromdate='', todate='') {
+    var dpuurl = url+"/dputestresults";
+		if (fromdate !== '') {
+        dpuurl = dpuurl+"?fromdate="+fromdate;
+		}
+	  if ( todate !== '') {
+        dpuurl = dpuurl+"&todate="+todate;
+		}
     $.getJSON({
-        url: url+"/dputestresults?fromdate=2020-08-01T00:00:00",
+        url: dpuurl,
         success: function (result) {
             $("#loadingMessage").html("");
             var data = speeddata;
@@ -54,6 +68,8 @@ function getnextChartData(url, speeddata) {
 }
 
 $(document).ready(function(){
+    var todate = ''
+    var fromdate = ''
     var proto = window.location.protocol;
     var port = window.location.port;
     var hostname = window.location.hostname;
@@ -66,14 +82,15 @@ $(document).ready(function(){
       $( "#todatepicker" ).datepicker();
     });
     $( "#target" ).click(function() {
-			try	{
-			    var fromdate = new Date($("#fromdatepicker").val()).toISOString();
+      var rawfromdate = $("#fromdatepicker").val();
+			if (rawfromdate !== '') {
+          fromdate = new Date($("#fromdatepicker").val()).toISOString();
 			}
-			finally {}
-			try {
-			    var todate = new Date($("#todatepicker").val()).toISOString();
-			}
-			finally {}
+      var rawtodate = $("#todatepicker").val();
+			if (rawtodate !== '') {
+          todate = new Date($("#todatepicker").val()).toISOString();
+      }
+      getChartData(url, fromdate, todate);
     });
 });
 
