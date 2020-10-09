@@ -1,52 +1,79 @@
-<!DOCTYPE html>
-<html>
-
-<head>
+<!doctype html>
+<html lang="en">
+  <head>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="/static/myChart.js"></script>
+    <script src="/static/combinedChart.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">
     <style>
-        .container {
-            width: 75%;
-            height: 50%;
-            position: relative;
-        }
-
-        #loadingSpeedMessage {
-            position: absolute;
-            left: 75%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        #loadingLinesyncMessage {
-            position: absolute;
-            left: 75%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
+      .container {
+        width: 75%;
+        height: 50%;
+        position: relative;
+      }
+  
+      #loadingMessage {
+        position: absolute;
+        left: 75%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
     </style>
-</head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>AussieBB Management Dashboard</title>
+  </head>
+  <body>
 
-<body>
-
-    <div class="jumbotron">
+    <div class="container">
+      <div class="jumbotron">
         <h1 class="display-4">Aussie Broadband Management Dashboard</h1>
+        <p class="lead">Track your speed and sync rate here.</p>
+        <hr class="my-4">
+        <p>There is no warranty for this utility and it's not associated with AussieBB at all</p>
+      </div>
+  
+      <div class="container" id='datechooser'>
+        <div class="row">
+          <div class="col-med px-lg-2">
+            FromDate: <input type="text" id="fromdatepicker">
+          </div>
+          <div class="col-med px-lg-2">
+            ToDate: <input type="text" id="todatepicker">
+          </div>
+          <div class="col-med px-lg-2" id="target">
+            <button type="button" class="btn btn-primary">Graph it!</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div id="loadingMessage"></div>
+        <canvas id="combinedChart"></canvas>
+      </div>
+
+      <div class="container" id="configuration">
+        How often to run the Speed Test and DPU Port Status (Line Sync)?
+        <select id="cadence" name="cadence">
+          <option value="1">1 hour</option>
+          <option value="2">2 hours</option>
+          <option value="4">4 hours</option>
+          <option value="8">8 hours</option>
+          <option value="12">12 hours</option>
+          <option value="24" selected>24 hours</option>
+        </select>
+      </div>
+
+      <div class="container" id="updateuserpass">
+        <a href="#">Update Aussie Broadband Username and Password.</a>
+      </div>
+      <div class="container" id="updateuserpassbox">
+      </div>
     </div>
 
-    <div class="container">
-        <div id="loadingSpeedMessage"></div>
-        <canvas id="speedChart"></canvas>
-    </div>
-
-    <div class="container">
-        <div id="loadingLinesyncMessage"></div>
-        <canvas id="linesyncChart"></canvas>
-    </div>
-
-</body>
-
+  </body>
 </html>

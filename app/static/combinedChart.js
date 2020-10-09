@@ -1,3 +1,5 @@
+var combinedChart;
+
 function getChartData(url, fromdate = '', todate = '') {
     var speedurl = url + "/speedtestresults";
     if (fromdate !== '') {
@@ -68,14 +70,19 @@ function getnextChartData(url, speeddata, fromdate = '', todate = '') {
     });
 }
 
-$(document).ready(function() {
+function hello(response) {
+  var proto = window.location.protocol;
+  var port = window.location.port;
+  var hostname = window.location.hostname;
+
+  var url = proto + '//' + hostname + ':' + port;
+
+  if (response.length == 1) {
+    // do the charge as we have a username
     var todate = ''
     var fromdate = ''
-    var proto = window.location.protocol;
-    var port = window.location.port;
-    var hostname = window.location.hostname;
-    url = proto + '//' + hostname + ':' + port;
     getChartData(url);
+
     $(function() {
         $("#fromdatepicker").datepicker();
     });
@@ -89,74 +96,163 @@ $(document).ready(function() {
         }
         var rawtodate = $("#todatepicker").val();
         if (rawtodate !== '') {
-            todate = new Date($("#todatepicker").val()).toISOString();
+            var todate_raw = new Date($("#todatepicker").val());
+            todate = new Date(todate_raw.setDate(todate_raw.getDate() + 1)).toISOString();
         }
         getChartData(url, fromdate, todate);
+    });
+
+  } else {
+    var userpass = `
+        <div class="row">
+          <div class="col-med px-lg-2">
+            Please enter your Aussie Broadband username and password to get started:
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-med px-lg-2">
+            Username: <input type="text" id="aussiebb_username">
+          </div>
+          <div class="col-med px-lg-2">
+            Password: <input type="password" id="aussiebb_password">
+          </div>
+          <div class="col-med px-lg-2" id="saveuserpass">
+            <button type="button" class="btn btn-primary">Save</button>
+          </div>
+        </div>`
+    $("#datechooser").html(userpass);
+    $("#saveuserpass").click(function() {
+        $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+$("#aussiebb_password").val())
+        .done(function() {
+          location.reload();
+        });
+    });
+  }
+}
+
+
+
+$(document).ready(function() {
+    var proto = window.location.protocol;
+    var port = window.location.port;
+    var hostname = window.location.hostname;
+
+    var url = proto + '//' + hostname + ':' + port;
+
+    var aussiebb_username = $.getJSON({url: url+'/settings?key=aussiebb_username'})
+      .done(hello);
+
+    $.getJSON({url: url+'/settings?key=cadence'})
+      .done(function(data) {
+      if (data.length == 1) {
+          $("#cadence").val(data[0].value);
+      } else {
+          $("#cadence").val(24);
+      }
+    });
+
+    $("#configuration").change(function() {
+        $.post(url+"/settings", data="cadence="+$("#cadence").val())
+    });
+
+    $("#updateuserpass").click(function() {
+        var userpass = `
+            <div class="row">
+              <div class="col-med px-lg-2">
+                Please enter your Aussie Broadband username and password to get started:
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-med px-lg-2">
+                Username: <input type="text" id="aussiebb_username">
+              </div>
+              <div class="col-med px-lg-2">
+                Password: <input type="password" id="aussiebb_password">
+              </div>
+              <div class="col-med px-lg-2" id="saveuserpass">
+                <button type="button" class="btn btn-primary">Save</button>
+              </div>
+            </div>`
+        $("#updateuserpassbox").html(userpass);
+        $("#saveuserpass").click(function() {
+            $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+$("#aussiebb_password").val())
+            .done(function() {
+              $("#updateuserpassbox").hide();
+            });
+        });        
     });
 });
 
 function renderChart(data) {
-    var ctx = document.getElementById("combinedChart").getContext('2d');
-    var combinedChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: [{
-                    label: 'Download Speed',
-                    order: 0,
-                    fill: false,
-                    data: data[0],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    pointRadius: 2
-                },
-                {
-                    label: 'Upload Speed',
-                    order: 1,
-                    fill: false,
-                    data: data[1],
-                    borderColor: 'rgba(192, 192, 192, 1)',
-                    backgroundColor: 'rgba(192, 192, 192, 1)',
-                    borderWidth: 1,
-                    pointRadius: 2
-                },
-                {
-                    label: 'Down Line Sync',
-                    order: 0,
-                    fill: false,
-                    data: data[2],
-                    borderColor: 'rgba(3, 7, 252, 1)',
-                    backgroundColor: 'rgba(3, 7, 252, 1)',
-                    borderWidth: 1,
-                    pointRadius: 2
-                },
-                {
-                    label: 'Up Line Sync',
-                    order: 1,
-                    fill: false,
-                    data: data[3],
-                    borderColor: 'rgba(252, 23, 3, 1)',
-                    backgroundColor: 'rgba(252, 23, 3, 1)',
-                    borderWidth: 1,
-                    pointRadius: 2
-                },
-            ]
-        },
-        options: {
-            scales: {
-                xAxes: [{
-                    type: 'time'
-                }],
-                yAxes: [{
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'kbps'
+    if (combinedChart) {
+      var i;
+      for (i = 0; i < combinedChart.data.datasets.length; i++) {
+          combinedChart.data.datasets[i].data = data[i];
+      }
+      combinedChart.update();
+    } else {
+        var ctx = document.getElementById("combinedChart").getContext('2d');
+        combinedChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                        label: 'Download Speed',
+                        order: 0,
+                        fill: false,
+                        data: data[0],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        pointRadius: 2
                     },
-                    ticks: {
-                        beginAtZero: true,
-                    }
-                }]
+                    {
+                        label: 'Upload Speed',
+                        order: 1,
+                        fill: false,
+                        data: data[1],
+                        borderColor: 'rgba(192, 192, 192, 1)',
+                        backgroundColor: 'rgba(192, 192, 192, 1)',
+                        borderWidth: 1,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'Down Line Sync',
+                        order: 0,
+                        fill: false,
+                        data: data[2],
+                        borderColor: 'rgba(3, 7, 252, 1)',
+                        backgroundColor: 'rgba(3, 7, 252, 1)',
+                        borderWidth: 1,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'Up Line Sync',
+                        order: 1,
+                        fill: false,
+                        data: data[3],
+                        borderColor: 'rgba(252, 23, 3, 1)',
+                        backgroundColor: 'rgba(252, 23, 3, 1)',
+                        borderWidth: 1,
+                        pointRadius: 2
+                    },
+                ]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time'
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'kbps'
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                        }
+                    }]
+                }
             }
-        }
-    });
+        });
+    }
 }

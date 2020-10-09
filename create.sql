@@ -17,3 +17,8 @@ create table speedtestresults(
 	uploadSpeedKbps NUMERIC,
 	date TEXT
 );
+
+create table settings(
+  key varchar(256) PRIMARY KEY,
+  value varchar(256)
+)

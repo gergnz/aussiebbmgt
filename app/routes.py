@@ -14,8 +14,9 @@ def dict_factory(cursor, row):
 
 class SpeedTestResults(Resource):
     def get(self):
-        fromdate = datetime.datetime.now() - datetime.timedelta(days=365)
-        todate = datetime.datetime.now()
+        fromdate_raw = datetime.datetime.now() - datetime.timedelta(days=365)
+        fromdate = fromdate_raw.isoformat()
+        todate = datetime.datetime.now().isoformat()
         if 'fromdate' in request.args:
             fromdate = request.args['fromdate']
         if 'todate' in request.args:
@@ -44,18 +45,40 @@ class DpuTestResults(Resource):
         conn.close()
         return results
 
+class Settings(Resource):
+    def get(self):
+        query = "select * from settings"
+        if 'key' in request.args:
+            query = "select * from settings where key = '%s'" % (request.args['key'])
+        conn = sqlite3.connect('aussiebbmgt.db')
+        conn.row_factory = dict_factory
+        cursor = conn.cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        conn.close()
+        return results
+
+    def post(self):
+        conn = sqlite3.connect('aussiebbmgt.db')
+        conn.row_factory = dict_factory
+        cursor = conn.cursor()
+        for key in request.form.keys():
+            value = request.form.get(key)
+            cursor.execute("insert into settings(key,value) values ('%s', '%s') on conflict(key) do update set value='%s' where key='%s'" % (key, value, value, key))
+            conn.commit()
+        results = cursor.fetchall()
+        conn.close()
+        return results
+
 @app.route('/')
 @app.route('/index')
 def index():
     return render_template('index.html')
 
-@app.route('/combined')
-def combined():
-    return render_template('combined.html')
-
-@app.route('/test')
-def test():
-    return render_template('test.html')
+@app.route('/favicon.ico')
+def favicon():
+    return ''
 
 api.add_resource(SpeedTestResults, '/speedtestresults')
 api.add_resource(DpuTestResults, '/dputestresults')
+api.add_resource(Settings, '/settings')
