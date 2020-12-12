@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 This will run forever and check the time to see if it should run again.
 When it runs it runs a speed test and dpu port status test.
@@ -8,6 +8,7 @@ We then fetch the results and save them locally.
 import time
 import datetime
 import os
+import sys
 import random
 import sqlite3
 import aussiebb.portal as portal
@@ -68,10 +69,11 @@ def runtests():
             services.append((service_type, service_id))
 
     dpu = abbportal.dpuportstatus(service_id)
-    print(dpu)
+    print(dpu, file=sys.stderr, flush=True)
 
     # run the speed test
-    os.system('docker run --rm -e TZ=Australia/Sydney abb-speedtest')
+    # os.system('docker run --rm -e TZ=Australia/Sydney abb-speedtest')
+    os.system('/usr/bin/abb-speedtest')
 
 def saveresults():
     """
@@ -119,7 +121,7 @@ def saveresults():
                            output['output']['reversePowerState'],
                            lineup,linedown,
                            output['completed_at']))
-                print(insertline)
+                print(insertline, file=sys.stderr, flush=True)
                 runsql(insertline)
 
     # get and populate all the spped test results
@@ -138,17 +140,30 @@ def saveresults():
                        result['downloadSpeedKbps'],
                        result['uploadSpeedKbps'],
                        result['date']))
-            print(insertline)
+            print(insertline, file=sys.stderr, flush=True)
             runsql(insertline)
 
+print("starting runforever", file=sys.stderr, flush=True)
+DEBUG = os.environ.get('DEBUG')
+if DEBUG == 'true':
+    print("debug is set", file=sys.stderr, flush=True)
 while True:
     time.sleep(60)
     settings = getsettings()
+    if DEBUG == 'true':
+        print(settings, file=sys.stderr, flush=True)
+        print(datetime.datetime.now(), file=sys.stderr, flush=True)
     # is it the minute?
-    if datetime.datetime.now().minute != settings['minute']:
+    if datetime.datetime.now().minute != int(settings['minute']):
+        if DEBUG == 'true':
+            print("wrong minute", file=sys.stderr, flush=True)
         continue
     # is it the hour?
-    if datetime.datetime.now().hour%settings['cadence'] != 0:
+    if datetime.datetime.now().hour%int(settings['cadence']) != 0:
+        if DEBUG == 'true':
+            print("wrong hour", file=sys.stderr, flush=True)
         continue
+    if DEBUG == 'true':
+        print("it's the right time, let's run the tests and get the results", file=sys.stderr, flush=True)
     runtests()
     saveresults()

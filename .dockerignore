@@ -1,0 +1,11 @@
+.dockerignore
+.envrc
+.git
+.gitignore
+.venv
+Dockerfile
+README.md
+__pycache__
+archive
+utils
+aussiebbmgt.db
