@@ -1,5 +1,6 @@
 import datetime
 import sqlite3
+from urllib.parse import unquote
 from flask import render_template, request
 from flask_restful import Resource, Api
 from app import app
@@ -31,8 +32,9 @@ class SpeedTestResults(Resource):
 
 class DpuTestResults(Resource):
     def get(self):
-        fromdate = datetime.datetime.now() - datetime.timedelta(days=365)
-        todate = datetime.datetime.now()
+        fromdate_raw = datetime.datetime.now() - datetime.timedelta(days=365)
+        fromdate = fromdate_raw.isoformat()
+        todate = datetime.datetime.now().isoformat()
         if 'fromdate' in request.args:
             fromdate = request.args['fromdate']
         if 'todate' in request.args:
@@ -63,7 +65,7 @@ class Settings(Resource):
         conn.row_factory = dict_factory
         cursor = conn.cursor()
         for key in request.form.keys():
-            value = request.form.get(key)
+            value = unquote(request.form.get(key))
             cursor.execute("insert into settings(key,value) values ('%s', '%s') on conflict(key) do update set value='%s' where key='%s'" % (key, value, value, key))
             conn.commit()
         results = cursor.fetchall()

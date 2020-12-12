@@ -122,7 +122,7 @@ function hello(response) {
         </div>`
     $("#datechooser").html(userpass);
     $("#saveuserpass").click(function() {
-        $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+$("#aussiebb_password").val())
+        $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
         .done(function() {
           location.reload();
         });
@@ -175,7 +175,7 @@ $(document).ready(function() {
             </div>`
         $("#updateuserpassbox").html(userpass);
         $("#saveuserpass").click(function() {
-            $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+$("#aussiebb_password").val())
+            $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
             .done(function() {
               $("#updateuserpassbox").hide();
             });
