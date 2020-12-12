@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-if [ ! -f /srv/aussiebbmgt.db ]
+if [ ! -f /data/aussiebbmgt.db ]
 then
-  cp /srv/empty.db /srv/aussiebbmgt.db
+  cp /srv/empty.db /data/aussiebbmgt.db
 fi
 
 /srv/runforever.py
