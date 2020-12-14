@@ -75,6 +75,7 @@ def runtests():
     # os.system('docker run --rm -e TZ=Australia/Sydney abb-speedtest')
     os.system('/usr/bin/abb-speedtest')
 
+# pylint: disable=too-many-locals
 def saveresults():
     """
     Get the results from AussieBB and save the locally.
@@ -113,7 +114,9 @@ def saveresults():
                 else:
                     linedown = linerate.split('/')[0].replace('>','')
                     lineup = linerate.split('/')[1].split(' ')[0]
+                # pylint: disable=line-too-long
                 insertline = ("insert into dpuportstatusresults values ('%s', '%s', '%s', '%s', '%s', %s, %s, '%s')"
+                # pylint: enable=line-too-long
                         % (output['id'],
                            output['result'],
                            output['output']['syncState'],
@@ -142,6 +145,7 @@ def saveresults():
                        result['date']))
             print(insertline, file=sys.stderr, flush=True)
             runsql(insertline)
+# pylint: enable=too-many-locals
 
 print("starting runforever", file=sys.stderr, flush=True)
 DEBUG = os.environ.get('DEBUG')
@@ -164,6 +168,8 @@ while True:
             print("wrong hour", file=sys.stderr, flush=True)
         continue
     if DEBUG == 'true':
+        # pylint: disable=line-too-long
         print("it's the right time, let's run the tests and get the results", file=sys.stderr, flush=True)
+        # pylint: enable=line-too-long
     runtests()
     saveresults()
