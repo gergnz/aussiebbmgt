@@ -16,7 +16,7 @@ docker volume create abbdata
 
 Start the docker container:
 ```
-docker run --name aussiebbmgt -v abbdata:/data -p 5000:5000 aussiebbmgt
+docker run --name aussiebbmgt -v abbdata:/data -p 5000:5000 gergnz/aussiebbmgt
 ```
 
 ## Debugging
