@@ -92,11 +92,13 @@ function hello(response) {
     $("#target").click(function() {
         var rawfromdate = $("#fromdatepicker").val();
         if (rawfromdate !== '') {
-            fromdate = new Date($("#fromdatepicker").val()).toISOString();
+            var zrawfromdate = rawfromdate.split('/');
+            fromdate = new Date(zrawfromdate[2], zrawfromdate[1]-1, zrawfromdate[0]).toISOString();
         }
         var rawtodate = $("#todatepicker").val();
         if (rawtodate !== '') {
-            var todate_raw = new Date($("#todatepicker").val());
+            var zrawtodate = rawtodate.split('/');
+            var todate_raw = new Date(zrawtodate[2], zrawtodate[1]-1, zrawtodate[0]);
             todate = new Date(todate_raw.setDate(todate_raw.getDate() + 1)).toISOString();
         }
         getChartData(url, fromdate, todate);
