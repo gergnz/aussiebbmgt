@@ -84,10 +84,10 @@ function hello(response) {
     getChartData(url);
 
     $(function() {
-        $("#fromdatepicker").datepicker();
+        $("#fromdatepicker").datepicker({ dateFormat: "dd/mm/yy", minDate: "-12M", maxDate: "+0D" });
     });
     $(function() {
-        $("#todatepicker").datepicker();
+        $("#todatepicker").datepicker({ dateFormat: "dd/mm/yy", minDate: "-12M", maxDate: "+0D" });
     });
     $("#target").click(function() {
         var rawfromdate = $("#fromdatepicker").val();
