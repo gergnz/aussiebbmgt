@@ -74,6 +74,7 @@ def runtests():
     # run the speed test
     # os.system('docker run --rm -e TZ=Australia/Sydney abb-speedtest')
     os.system('/usr/bin/abb-speedtest')
+    os.system('/bin/rm -rf /tmp/lighthouse.X*')
 
 # pylint: disable=too-many-locals
 def saveresults():
