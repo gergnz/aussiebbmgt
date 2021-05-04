@@ -42,7 +42,7 @@ class DpuTestResults(Resource):
         conn = sqlite3.connect('aussiebbmgt.db')
         conn.row_factory = dict_factory
         cursor = conn.cursor()
-        cursor.execute("select * from dpuportstatusresults where completed_at > '%s' and completed_at < '%s' order by id" % (fromdate, todate))
+        cursor.execute("select * from dpuportstatusresults where syncState != 'None' and operationalState != 'None' and completed_at > '%s' and completed_at < '%s' order by id" % (fromdate, todate))
         results = cursor.fetchall()
         conn.close()
         return results
