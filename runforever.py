@@ -116,7 +116,7 @@ def saveresults():
                     linedown = linerate.split('/')[0].replace('>','')
                     lineup = linerate.split('/')[1].split(' ')[0]
                 # pylint: disable=line-too-long
-                insertline = ("insert into dpuportstatusresults values ('%s', '%s', '%s', '%s', '%s', %s, %s, '%s')"
+                insertline = ("insert into dpuportstatusresults values ('%s', '%s', '%s', '%s', '%s', %s, %s, '%s', '%s')"
                 # pylint: enable=line-too-long
                         % (output['id'],
                            output['result'],
@@ -124,7 +124,8 @@ def saveresults():
                            output['output']['operationalState'],
                            output['output']['reversePowerState'],
                            lineup,linedown,
-                           output['completed_at']))
+                           output['completed_at'],
+                           output['status']))
                 print(insertline, file=sys.stderr, flush=True)
                 runsql(insertline)
 

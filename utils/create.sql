@@ -6,7 +6,8 @@ create table dpuportstatusresults(
 	reversePowerState varchar(10),
 	linerateup NUMERIC,
 	lineratedown NUMERIC,
-	completed_at TEXT
+	completed_at TEXT,
+  status varchar(10)
 );
 
 create table speedtestresults(
