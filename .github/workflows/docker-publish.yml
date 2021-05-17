@@ -20,14 +20,6 @@ jobs:
 
     steps:
       -
-        name: Checkout
-        uses: actions/checkout@v2
-      -
-        name: Checkout Speedtest
-        uses: actions/checkout@v2
-        with:
-          repository: 'lukealford/abb-speedtest-cli'
-      -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       -
@@ -40,6 +32,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
+        name: Checkout Speedtest
+        uses: actions/checkout@v2
+        with:
+          repository: 'lukealford/abb-speedtest-cli'
+      -
         name: Build speedtest
         id: docker_build_speedtest
         uses: docker/build-push-action@v2
@@ -47,6 +44,9 @@ jobs:
           context: abb-speedtest-cli
           push: false
           tags: abb-speedtest
+      -
+        name: Checkout
+        uses: actions/checkout@v2
       -
         name: Build and push Aussiebbmgt
         id: docker_build
