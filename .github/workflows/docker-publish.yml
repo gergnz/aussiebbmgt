@@ -26,7 +26,7 @@ jobs:
         name: Checkout Speedtest
         uses: actions/checkout@v2
         with:
-          repository: 'https://github.com/lukealford/abb-speedtest-cli.git'
+          repository: 'lukealford/abb-speedtest-cli'
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
