@@ -44,8 +44,10 @@ jobs:
         with:
           context: abb-speedtest-cli
           push: false
+          load: true
           tags: abb-speedtest
-      - name: docker images
+      -
+        name: docker images
         run: docker images
       -
         name: Build and push Aussiebbmgt
