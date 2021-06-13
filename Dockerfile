@@ -1,7 +1,7 @@
 FROM abb-speedtest:latest
 USER 0
 RUN apk update && \
-    apk add git sqlite python3 py3-pip bash supervisor && \
+    apk add git sqlite python3 py3-pip py-psutil bash supervisor && \
     mkdir -p /srv && \
     mkdir -p /data && chown 1000 /data
 COPY . /srv

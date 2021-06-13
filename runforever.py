@@ -11,6 +11,8 @@ import os
 import sys
 import random
 import sqlite3
+import subprocess
+import psutil
 import aussiebb.portal as portal
 
 def runsql(query):
@@ -72,8 +74,18 @@ def runtests():
     print(dpu, file=sys.stderr, flush=True)
 
     # run the speed test
-    # os.system('docker run --rm -e TZ=Australia/Sydney abb-speedtest')
-    os.system('/usr/bin/abb-speedtest')
+    try:
+        proc = subprocess.run(['/usr/bin/abb-speedtest'], check=True, timeout=600)
+    except subprocess.TimeoutExpired:
+        print('speed test timedout')
+        for proc in psutil.process_iter():
+            if proc.name() == 'chrome':
+                proc.kill()
+    except subprocess.CalledProcessError:
+        print('speed test failed')
+        for proc in psutil.process_iter():
+            if proc.name() == 'chrome':
+                proc.kill()
     os.system('/bin/rm -rf /tmp/lighthouse.X*')
 
 # pylint: disable=too-many-locals

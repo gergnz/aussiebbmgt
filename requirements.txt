@@ -18,9 +18,10 @@ pip-autoremove==0.9.1
 prettytable==0.7.2
 pylint==2.6.0
 pytz==2020.1
-requests==2.24.0
+requests==2.25.1
 six==1.15.0
 toml==0.10.1
 urllib3==1.26.5
 Werkzeug==1.0.1
 wrapt==1.12.1
+psutil==5.7.0
