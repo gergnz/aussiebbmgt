@@ -8,6 +8,7 @@ We then fetch the results and save them locally.
 import time
 import datetime
 import os
+import json
 import random
 import sqlite3
 import subprocess
@@ -80,7 +81,12 @@ def runtests():
 
     # run the speed test
     try:
-        proc = subprocess.run(['/usr/bin/abb-speedtest'], check=True, timeout=600)
+        p_speedtest = subprocess.run(
+                ['/usr/bin/abb-speedtest', '-j'],
+                capture_output=True,
+                check=True,
+                timeout=600
+        )
     except subprocess.TimeoutExpired:
         logging.error('speed test timedout')
         for proc in psutil.process_iter():
@@ -92,6 +98,25 @@ def runtests():
             if proc.name() == 'chrome':
                 proc.kill()
     os.system('/bin/rm -rf /tmp/lighthouse.X*')
+
+    for line in p_speedtest.stdout.decode("utf-8").split('\n'):
+        try:
+            result = json.loads(line)
+            break
+        except json.JSONDecodeError:
+            pass
+
+    speedid = int(runsql("select id from speedtestresults order by id desc limit 1")[0][0]) + 1
+
+    insertline = ("insert into speedtestresults values ('%s', '%s', '%s', '%s', '%s', '%s')"
+            % (speedid,
+               result['location'],
+               result['ping'],
+               int(round(float(result['download'])*1024,0)),
+               int(round(float(result['upload'])*1024,0)),
+               result['isodate']))
+    logging.info(insertline)
+    runsql(insertline)
 
 # pylint: disable=too-many-locals
 def saveresults():
