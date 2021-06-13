@@ -25,7 +25,8 @@ class SpeedTestResults(Resource):
         conn = sqlite3.connect('aussiebbmgt.db')
         conn.row_factory = dict_factory
         cursor = conn.cursor()
-        cursor.execute("select * from speedtestresults where date > '%s' and date < '%s' order by id" % (fromdate, todate))
+        query="select * from speedtestresults where date > ? and date < ? order by id"
+        cursor.execute(query, (fromdate, todate))
         results = cursor.fetchall()
         conn.close()
         return results
@@ -42,20 +43,23 @@ class DpuTestResults(Resource):
         conn = sqlite3.connect('aussiebbmgt.db')
         conn.row_factory = dict_factory
         cursor = conn.cursor()
-        cursor.execute("select * from dpuportstatusresults where syncState != 'None' and operationalState != 'None' and completed_at > '%s' and completed_at < '%s' order by id" % (fromdate, todate))
+        query = "select * from dpuportstatusresults where syncState != 'None' and operationalState != 'None' and completed_at > ? and completed_at < ? order by id"
+        cursor.execute(query, (fromdate, todate))
         results = cursor.fetchall()
         conn.close()
         return results
 
 class Settings(Resource):
     def get(self):
-        query = "select * from settings"
-        if 'key' in request.args:
-            query = "select * from settings where key = '%s'" % (request.args['key'])
         conn = sqlite3.connect('aussiebbmgt.db')
         conn.row_factory = dict_factory
         cursor = conn.cursor()
-        cursor.execute(query)
+        if 'key' in request.args:
+            query = "select * from settings where key = ?"
+            cursor.execute(query, (str(request.args['key']),))
+        else:
+            query = "select * from settings"
+            cursor.execute(query)
         results = cursor.fetchall()
         conn.close()
         return results
@@ -64,9 +68,10 @@ class Settings(Resource):
         conn = sqlite3.connect('aussiebbmgt.db')
         conn.row_factory = dict_factory
         cursor = conn.cursor()
+        query = "insert into settings(key,value) values (?, ?) on conflict(key) do update set value=? where key=?"
         for key in request.form.keys():
             value = unquote(request.form.get(key))
-            cursor.execute("insert into settings(key,value) values ('%s', '%s') on conflict(key) do update set value='%s' where key='%s'" % (key, value, value, key))
+            cursor.execute(query, (key, value, value, key))
             conn.commit()
         results = cursor.fetchall()
         conn.close()
