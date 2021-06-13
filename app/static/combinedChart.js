@@ -1,3 +1,33 @@
+function toggledark() {
+  var colour = getCookie("colour");
+  if (colour === "dark") {
+    document.cookie = "colour=light";
+    $("#jumbotron").removeClass("dark-mode");
+    var element = document.body;
+    element.classList.remove("dark-mode");
+  } else {
+    document.cookie = "colour=dark";
+    $("#jumbotron").addClass("dark-mode");
+    var element = document.body;
+    element.classList.add("dark-mode");
+  }
+}
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
 var combinedChart;
 
 function getChartData(url, fromdate = '', todate = '') {
@@ -70,6 +100,21 @@ function getnextChartData(url, speeddata, fromdate = '', todate = '') {
     });
 }
 
+function getdata(url, fromdate, todate) {
+        var rawfromdate = $("#fromdatepicker").val();
+        if (rawfromdate !== '') {
+            var zrawfromdate = rawfromdate.split('/');
+            fromdate = new Date(zrawfromdate[2], zrawfromdate[1]-1, zrawfromdate[0]).toISOString();
+        }
+        var rawtodate = $("#todatepicker").val();
+        if (rawtodate !== '') {
+            var zrawtodate = rawtodate.split('/');
+            var todate_raw = new Date(zrawtodate[2], zrawtodate[1]-1, zrawtodate[0]);
+            todate = new Date(todate_raw.setDate(todate_raw.getDate() + 1)).toISOString();
+        }
+        getChartData(url, fromdate, todate);
+}
+
 function hello(response) {
   var proto = window.location.protocol;
   var port = window.location.port;
@@ -89,20 +134,13 @@ function hello(response) {
     $(function() {
         $("#todatepicker").datepicker({ dateFormat: "dd/mm/yy", minDate: "-12M", maxDate: "+0D" });
     });
-    $("#target").click(function() {
-        var rawfromdate = $("#fromdatepicker").val();
-        if (rawfromdate !== '') {
-            var zrawfromdate = rawfromdate.split('/');
-            fromdate = new Date(zrawfromdate[2], zrawfromdate[1]-1, zrawfromdate[0]).toISOString();
-        }
-        var rawtodate = $("#todatepicker").val();
-        if (rawtodate !== '') {
-            var zrawtodate = rawtodate.split('/');
-            var todate_raw = new Date(zrawtodate[2], zrawtodate[1]-1, zrawtodate[0]);
-            todate = new Date(todate_raw.setDate(todate_raw.getDate() + 1)).toISOString();
-        }
-        getChartData(url, fromdate, todate);
-    });
+
+    $("#todatepicker").change(function() {getdata(url, fromdate, todate)});
+    $("#fromdatepicker").change(function() {getdata(url, fromdate, todate)});
+
+    setInterval(function(){
+      getdata(url, fromdate, todate)
+    }, 1800000);
 
   } else {
     var userpass = `
@@ -132,9 +170,13 @@ function hello(response) {
   }
 }
 
-
-
 $(document).ready(function() {
+    var colour = getCookie('colour');
+    if (colour === 'dark') {
+      $("#jumbotron").addClass("dark-mode");
+      var element = document.body;
+      element.classList.add("dark-mode");
+    }
     var proto = window.location.protocol;
     var port = window.location.port;
     var hostname = window.location.hostname;

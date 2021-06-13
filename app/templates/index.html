@@ -22,6 +22,11 @@
         top: 50%;
         transform: translate(-50%, -50%);
       }
+
+      .dark-mode {
+        background: black !important;
+        color: GhostWhite;
+      }
     </style>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -33,7 +38,7 @@
   <body>
 
     <div class="container">
-      <div class="jumbotron">
+      <div class="jumbotron" id="jumbotron">
         <h1 class="display-4">Aussie Broadband Management Dashboard</h1>
         <p class="lead">Track your speed and sync rate here.</p>
         <hr class="my-4">
@@ -41,15 +46,10 @@
       </div>
   
       <div class="container" id='datechooser'>
-        <div class="row">
+        <div class="row justify-content-center">
           <div class="col-med px-lg-2">
             FromDate: <input type="text" id="fromdatepicker">
-          </div>
-          <div class="col-med px-lg-2">
             ToDate: <input type="text" id="todatepicker">
-          </div>
-          <div class="col-med px-lg-2" id="target">
-            <button type="button" class="btn btn-primary">Graph it!</button>
           </div>
         </div>
       </div>
@@ -76,7 +76,11 @@
       </div>
       <div class="container" id="updateuserpassbox">
       </div>
+      <div class="container">
+        <div class="row justify-content-center">
+          <button class="btn btn-outline-danger" onclick="toggledark()">Dark/Light Mode</button>
+        </div>
+      </div>
     </div>
-
   </body>
 </html>
