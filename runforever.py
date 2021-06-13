@@ -8,12 +8,17 @@ We then fetch the results and save them locally.
 import time
 import datetime
 import os
-import sys
 import random
 import sqlite3
 import subprocess
+import logging
 import psutil
 import aussiebb.portal as portal
+
+_DEBUG=False
+if os.environ.get('FLASK_ENV') == 'development':
+    logging.basicConfig(level='DEBUG')
+    _DEBUG=True
 
 def runsql(query):
     """run the supplied query"""
@@ -60,7 +65,7 @@ def runtests():
     abbportal = portal.AussiePortal(
             _settings['username'],
             _settings['password'],
-            debug=False)
+            debug=_DEBUG)
 
     customer = abbportal.customer()
 
@@ -71,18 +76,18 @@ def runtests():
             services.append((service_type, service_id))
 
     dpu = abbportal.dpuportstatus(service_id)
-    print(dpu, file=sys.stderr, flush=True)
+    logging.info(dpu)
 
     # run the speed test
     try:
         proc = subprocess.run(['/usr/bin/abb-speedtest'], check=True, timeout=600)
     except subprocess.TimeoutExpired:
-        print('speed test timedout')
+        logging.error('speed test timedout')
         for proc in psutil.process_iter():
             if proc.name() == 'chrome':
                 proc.kill()
     except subprocess.CalledProcessError:
-        print('speed test failed')
+        logging.error('speed test failed')
         for proc in psutil.process_iter():
             if proc.name() == 'chrome':
                 proc.kill()
@@ -99,7 +104,7 @@ def saveresults():
     abbportal = portal.AussiePortal(
             _settings['username'],
             _settings['password'],
-            debug=False)
+            debug=_DEBUG)
 
     customer = abbportal.customer()
 
@@ -138,7 +143,7 @@ def saveresults():
                            lineup,linedown,
                            output['completed_at'],
                            output['status']))
-                print(insertline, file=sys.stderr, flush=True)
+                logging.info(insertline)
                 runsql(insertline)
 
     # get and populate all the spped test results
@@ -157,33 +162,24 @@ def saveresults():
                        result['downloadSpeedKbps'],
                        result['uploadSpeedKbps'],
                        result['date']))
-            print(insertline, file=sys.stderr, flush=True)
+            logging.info(insertline)
             runsql(insertline)
 # pylint: enable=too-many-locals
 
-print("starting runforever", file=sys.stderr, flush=True)
-DEBUG = os.environ.get('DEBUG')
-if DEBUG == 'true':
-    print("debug is set", file=sys.stderr, flush=True)
+logging.info("starting runforever")
 while True:
     time.sleep(60)
     settings = getsettings()
-    if DEBUG == 'true':
-        print(settings, file=sys.stderr, flush=True)
-        print(datetime.datetime.now(), file=sys.stderr, flush=True)
+    logging.debug(settings)
+    logging.debug(datetime.datetime.now())
     # is it the minute?
     if datetime.datetime.now().minute != int(settings['minute']):
-        if DEBUG == 'true':
-            print("wrong minute", file=sys.stderr, flush=True)
+        logging.debug("wrong minute")
         continue
     # is it the hour?
     if datetime.datetime.now().hour%int(settings['cadence']) != 0:
-        if DEBUG == 'true':
-            print("wrong hour", file=sys.stderr, flush=True)
+        logging.debug("wrong hour")
         continue
-    if DEBUG == 'true':
-        # pylint: disable=line-too-long
-        print("it's the right time, let's run the tests and get the results", file=sys.stderr, flush=True)
-        # pylint: enable=line-too-long
+    logging.debug("it's the right time, let's run the tests and get the results")
     runtests()
     saveresults()
