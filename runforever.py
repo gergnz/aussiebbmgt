@@ -118,7 +118,7 @@ def runtests():
     logging.info(insertline)
     runsql(insertline)
 
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals, too-many-branches
 def saveresults():
     """
     Get the results from AussieBB and save the locally.
@@ -180,6 +180,27 @@ def saveresults():
 
     for result in tests:
         if result['id'] not in ids:
+            completed_at = result['date']
+
+            # if we have a Z at the end remove it.
+            if completed_at[-1] == 'Z':
+                completed_at = completed_at[:-1]
+
+            # This little chunk of code tries to dedup
+            time_completed = datetime.datetime.fromisoformat(completed_at)
+
+            # pylint: disable=line-too-long
+            query = ("select id from speedtestresults where date > '%s' and date < '%s'"
+            % ( str((time_completed - datetime.timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%SZ')),
+                str((time_completed - datetime.timedelta(minutes=-1)).strftime('%Y-%m-%dT%H:%M:%SZ'))))
+            # pylint: enable=line-too-long
+
+            for result_to_delete in runsql(query):
+                delquery = ("delete from speedtestresults where id=%s" % result_to_delete[0])
+                logging.info(delquery)
+                runsql(delquery)
+
+            # now do the insert of the saved data to use the real id
             insertline = ("insert into speedtestresults values ('%s', '%s', '%s', '%s', '%s', '%s')"
                     % (result['id'],
                        result['server'],
@@ -189,7 +210,7 @@ def saveresults():
                        result['date']))
             logging.info(insertline)
             runsql(insertline)
-# pylint: enable=too-many-locals
+# pylint: enable=too-many-locals, too-many-branches
 
 logging.info("starting runforever")
 while True:
