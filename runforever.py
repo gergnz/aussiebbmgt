@@ -78,6 +78,13 @@ def runtests():
 
     dpu = abbportal.dpuportstatus(service_id)
     logging.info(dpu)
+    status = dpu['status']
+    testid = dpu['id']
+    while status == "InProgress":
+        time.sleep(30)
+        testresult = abbportal.testresult(service_id, testid)
+        status = testresult['status']
+        logging.info(testresult)
 
     # run the speed test
     try:
