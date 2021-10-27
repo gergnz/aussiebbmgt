@@ -13,8 +13,11 @@ import random
 import sqlite3
 import subprocess
 import logging
+import signal
 import psutil
 import aussiebb.portal as portal
+
+logging.basicConfig(level=logging.INFO)
 
 _DEBUG=False
 if os.environ.get('FLASK_ENV') == 'development':
@@ -59,7 +62,7 @@ def getsettings():
     return _settings
 
 
-def runtests():
+def runtests(): #pylint: disable=too-many-locals
     """Run the dpu port status and speed tests"""
 
     _settings = getsettings()
@@ -219,6 +222,11 @@ def saveresults():
             runsql(insertline)
 # pylint: enable=too-many-locals, too-many-branches
 
+def timer_expired(signum, frame): #pylint: disable=unused-argument
+    """Do something when we the timer expires."""
+    logging.error("execution timer expired.")
+    raise Exception("we ran out of time")
+
 logging.info("starting runforever")
 while True:
     time.sleep(60)
@@ -234,5 +242,10 @@ while True:
         logging.debug("wrong hour")
         continue
     logging.debug("it's the right time, let's run the tests and get the results")
-    runtests()
-    saveresults()
+    signal.signal(signal.SIGALRM, timer_expired)
+    signal.alarm(240)
+    try:
+        runtests()
+        saveresults()
+    except Exception as error: #pylint: disable=broad-except
+        logging.error(error)
