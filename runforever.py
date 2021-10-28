@@ -243,9 +243,10 @@ while True:
         continue
     logging.debug("it's the right time, let's run the tests and get the results")
     signal.signal(signal.SIGALRM, timer_expired)
-    signal.alarm(240)
+    signal.alarm(300)
     try:
         runtests()
         saveresults()
     except Exception as error: #pylint: disable=broad-except
         logging.error(error)
+    signal.alarm(0)
