@@ -2,12 +2,22 @@ function toggledark() {
   var colour = getCookie("colour");
   if (colour === "dark") {
     document.cookie = "colour=light";
-    $("#jumbotron").removeClass("dark-mode");
+    $("#fromdatepicker").removeClass("dark-input");
+    $("#todatepicker").removeClass("dark-input");
+    $("#cadence").removeClass("dark-input");
+    $("#aussiebb_username").removeClass("dark-input");
+    $("#aussiebb_password").removeClass("dark-input");
+    $("#modalcontent").removeClass("dark-mode");
     var element = document.body;
     element.classList.remove("dark-mode");
   } else {
     document.cookie = "colour=dark";
-    $("#jumbotron").addClass("dark-mode");
+    $("#fromdatepicker").addClass("dark-input");
+    $("#todatepicker").addClass("dark-input");
+    $("#cadence").addClass("dark-input");
+    $("#aussiebb_username").addClass("dark-input");
+    $("#aussiebb_password").addClass("dark-input");
+    $("#modalcontent").addClass("dark-mode");
     var element = document.body;
     element.classList.add("dark-mode");
   }
@@ -143,25 +153,26 @@ function hello(response) {
     }, 1800000);
 
   } else {
+    var configtext = "<h4>Please enter your Aussie Broadband username and password to get started.</h4>";
+    $("#loadingMessage").html(configtext);
     var userpass = `
-        <div class="row">
-          <div class="col-med px-lg-2">
-            Please enter your Aussie Broadband username and password to get started:
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-med px-lg-2">
-            Username: <input type="text" id="aussiebb_username">
-          </div>
-          <div class="col-med px-lg-2">
-            Password: <input type="password" id="aussiebb_password">
-          </div>
-          <div class="col-med px-lg-2" id="saveuserpass">
-            <button type="button" class="btn btn-primary">Save</button>
-          </div>
-        </div>`
+        <div class="col-md-auto">
+              <div class="row" id='userpass'>
+                <div class="col">
+                    <label for="aussiebb_username" class="form-label">Username:</label>
+                    <input type="text" size="50" class="form-control" id="aussiebb_username">
+                    <label for="aussiebb_password" class="form-label">Password:</label>
+                    <input type="password" size="50" class="form-control" id="aussiebb_password">
+                </div>
+              </div>
+              <div class="row pt-3" id='saveuserpassfirst'>
+                <div class="col">
+                    <button type="button" class="form-control btn btn-sm btn-outline-success">Save</button>
+                </div>
+              </div>
+        </div>`;
     $("#datechooser").html(userpass);
-    $("#saveuserpass").click(function() {
+    $("#saveuserpassfirst").click(function() {
         $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
         .done(function() {
           location.reload();
@@ -171,12 +182,6 @@ function hello(response) {
 }
 
 $(document).ready(function() {
-    var colour = getCookie('colour');
-    if (colour === 'dark') {
-      $("#jumbotron").addClass("dark-mode");
-      var element = document.body;
-      element.classList.add("dark-mode");
-    }
     var proto = window.location.protocol;
     var port = window.location.port;
     var hostname = window.location.hostname;
@@ -185,6 +190,18 @@ $(document).ready(function() {
 
     var aussiebb_username = $.getJSON({url: url+'/settings?key=aussiebb_username'})
       .done(hello);
+
+    var colour = getCookie('colour');
+    if (colour === 'dark') {
+      $("#fromdatepicker").addClass("dark-input");
+      $("#todatepicker").addClass("dark-input");
+      $("#cadence").addClass("dark-input");
+      $("#aussiebb_username").addClass("dark-input");
+      $("#aussiebb_password").addClass("dark-input");
+      $("#modalcontent").addClass("dark-mode");
+      var element = document.body;
+      element.classList.add("dark-mode");
+    }
 
     $.getJSON({url: url+'/settings?key=cadence'})
       .done(function(data) {
@@ -199,32 +216,12 @@ $(document).ready(function() {
         $.post(url+"/settings", data="cadence="+$("#cadence").val())
     });
 
-    $("#updateuserpass").click(function() {
-        var userpass = `
-            <div class="row">
-              <div class="col-med px-lg-2">
-                Please enter your Aussie Broadband username and password to get started:
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-med px-lg-2">
-                Username: <input type="text" id="aussiebb_username">
-              </div>
-              <div class="col-med px-lg-2">
-                Password: <input type="password" id="aussiebb_password">
-              </div>
-              <div class="col-med px-lg-2" id="saveuserpass">
-                <button type="button" class="btn btn-primary">Save</button>
-              </div>
-            </div>`
-        $("#updateuserpassbox").html(userpass);
-        $("#saveuserpass").click(function() {
-            $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
-            .done(function() {
-              $("#updateuserpassbox").hide();
-            });
-        });        
-    });
+    $("#saveuserpass").click(function() {
+        $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
+        .done(function() {
+          $("#ConfigurationModal").hide();
+        });
+    });        
 });
 
 function renderChart(data) {
@@ -282,11 +279,16 @@ function renderChart(data) {
                 ]
             },
             options: {
+                plugins: {
+                  legend: { position: 'bottom' }
+                },
                 scales: {
                     xAxis: {
                       type: 'time',
+                      grid: { color: 'rgba(100, 100, 100, 1)'},
                     },
                     yAxis: {
+                        grid: { color: 'rgba(100, 100, 100, 1)'},
                         title: {
                             display: true,
                             text: 'kbps'
@@ -294,7 +296,7 @@ function renderChart(data) {
                         beginAtZero: true
                     }
                 }
-            }
+            },
         });
     }
 }
