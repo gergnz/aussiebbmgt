@@ -47,11 +47,11 @@ function getChartData(url, fromdate = '', todate = '') {
             var down = [];
             result.forEach(function(element) {
                 down.push({
-                    t: new Date(element.date),
+                    x: new Date(element.date),
                     y: element.downloadSpeedKbps
                 });
                 up.push({
-                    t: new Date(element.date),
+                    x: new Date(element.date),
                     y: element.uploadSpeedKbps
                 });
             });
@@ -82,11 +82,11 @@ function getnextChartData(url, speeddata, fromdate = '', todate = '') {
             var down = [];
             result.forEach(function(element) {
                 down.push({
-                    t: new Date(element.completed_at),
+                    x: new Date(element.completed_at),
                     y: element.lineratedown * 1024
                 });
                 up.push({
-                    t: new Date(element.completed_at),
+                    x: new Date(element.completed_at),
                     y: element.linerateup * 1024
                 });
             });
@@ -283,18 +283,16 @@ function renderChart(data) {
             },
             options: {
                 scales: {
-                    xAxes: [{
-                        type: 'time'
-                    }],
-                    yAxes: [{
-                        scaleLabel: {
+                    xAxis: {
+                      type: 'time',
+                    },
+                    yAxis: {
+                        title: {
                             display: true,
-                            labelString: 'kbps'
+                            text: 'kbps'
                         },
-                        ticks: {
-                            beginAtZero: true,
-                        }
-                    }]
+                        beginAtZero: true
+                    }
                 }
             }
         });
