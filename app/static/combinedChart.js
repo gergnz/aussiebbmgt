@@ -1,15 +1,38 @@
+loadCss = function(filename,id) {
+    var elem=document.createElement("link");
+    elem.id=id;
+    elem.rel="stylesheet";
+    elem.type="text/css";
+    elem.href=filename;
+    return elem;
+}
+
 function toggledark() {
   var colour = getCookie("colour");
   if (colour === "dark") {
     document.cookie = "colour=light";
-    $("#jumbotron").removeClass("dark-mode");
+    $("#cadence").removeClass("dark-input");
+    $('input[type=text]').removeClass("dark-input");
+    $('input[type=password]').removeClass("dark-input");
+    $("#modalcontent").removeClass("dark-mode");
     var element = document.body;
     element.classList.remove("dark-mode");
+    $("#lighttheme").remove();
+    $("#darktheme").remove();
+    qelem = loadCss("https://cdn.jsdelivr.net/npm/jquery-ui-dist@1.13.1/jquery-ui.min.css","lighttheme");
+    document.getElementsByTagName("head")[0].appendChild(qelem);
   } else {
     document.cookie = "colour=dark";
-    $("#jumbotron").addClass("dark-mode");
+    $("#cadence").addClass("dark-input");
+    $('input[type=text]').addClass("dark-input");
+    $('input[type=password]').addClass("dark-input");
+    $("#modalcontent").addClass("dark-mode");
     var element = document.body;
     element.classList.add("dark-mode");
+    $("#lighttheme").remove();
+    $("#darktheme").remove();
+    qelem = loadCss("https://code.jquery.com/ui/1.13.1/themes/mint-choc/jquery-ui.css","darktheme");
+    document.getElementsByTagName("head")[0].appendChild(qelem);
   }
 }
 
@@ -32,26 +55,31 @@ var combinedChart;
 
 function getChartData(url, fromdate = '', todate = '') {
     var speedurl = url + "/speedtestresults";
+    var query = {};
     if (fromdate !== '') {
-        speedurl = speedurl + "?fromdate=" + fromdate;
+        query["fromdate"] = fromdate;
     }
     if (todate !== '') {
-        speedurl = speedurl + "&todate=" + todate;
+        query["todate"] = todate;
     }
-    $("#loadingMessage").html('<img src="/static/giphy.gif" alt="" srcset="">');
+
+    var imgheight = $( document ).width() / 3;
+
+    $("#loadingMessage").html('<img src="/static/giphy.gif" height="'+imgheight+'" alt="" srcset="">');
     $.getJSON({
         url: speedurl,
+        data: query,
         success: function(result) {
             var data = [];
             var up = [];
             var down = [];
             result.forEach(function(element) {
                 down.push({
-                    t: new Date(element.date),
+                    x: new Date(element.date),
                     y: element.downloadSpeedKbps
                 });
                 up.push({
-                    t: new Date(element.date),
+                    x: new Date(element.date),
                     y: element.uploadSpeedKbps
                 });
             });
@@ -60,21 +88,24 @@ function getChartData(url, fromdate = '', todate = '') {
             getnextChartData(url, data, fromdate, todate);
         },
         error: function(err) {
-            $("#loadingSpeedMessage").html("Error");
+            $("#combinedChart").hide();
+            $("#loadingMessage").html('<h3 class="display-1 text-danger text-left">Error!!!!<br>Something went wrong!</h3>');
         }
     });
 }
 
 function getnextChartData(url, speeddata, fromdate = '', todate = '') {
     var dpuurl = url + "/dputestresults";
+    var query = {};
     if (fromdate !== '') {
-        dpuurl = dpuurl + "?fromdate=" + fromdate;
+        query["fromdate"] = fromdate;
     }
     if (todate !== '') {
-        dpuurl = dpuurl + "&todate=" + todate;
+        query["todate"] = todate;
     }
     $.getJSON({
         url: dpuurl,
+        data: query,
         success: function(result) {
             $("#loadingMessage").html("");
             var data = speeddata;
@@ -82,11 +113,11 @@ function getnextChartData(url, speeddata, fromdate = '', todate = '') {
             var down = [];
             result.forEach(function(element) {
                 down.push({
-                    t: new Date(element.completed_at),
+                    x: new Date(element.completed_at),
                     y: element.lineratedown * 1024
                 });
                 up.push({
-                    t: new Date(element.completed_at),
+                    x: new Date(element.completed_at),
                     y: element.linerateup * 1024
                 });
             });
@@ -95,7 +126,8 @@ function getnextChartData(url, speeddata, fromdate = '', todate = '') {
             renderChart(data);
         },
         error: function(err) {
-            $("#loadingMessage").html("Error");
+            $("#combinedChart").hide();
+            $("#loadingMessage").html('<h3 class="display-1 text-danger text-left">Error!!!!<br>Something went wrong!</h3>');
         }
     });
 }
@@ -135,33 +167,39 @@ function hello(response) {
         $("#todatepicker").datepicker({ dateFormat: "dd/mm/yy", minDate: "-12M", maxDate: "+0D" });
     });
 
-    $("#todatepicker").change(function() {getdata(url, fromdate, todate)});
-    $("#fromdatepicker").change(function() {getdata(url, fromdate, todate)});
+    $("#todatepicker").change(function() {$("#combinedChart").hide(); getdata(url, fromdate, todate)});
+    $("#fromdatepicker").change(function() {$("#combinedChart").hide(); getdata(url, fromdate, todate)});
 
     setInterval(function(){
       getdata(url, fromdate, todate)
     }, 1800000);
 
   } else {
+    var configtext = "<h4>Please enter your Aussie Broadband username and password to get started.</h4>";
+    $("#loadingMessage").html(configtext);
     var userpass = `
-        <div class="row">
-          <div class="col-med px-lg-2">
-            Please enter your Aussie Broadband username and password to get started:
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-med px-lg-2">
-            Username: <input type="text" id="aussiebb_username">
-          </div>
-          <div class="col-med px-lg-2">
-            Password: <input type="password" id="aussiebb_password">
-          </div>
-          <div class="col-med px-lg-2" id="saveuserpass">
-            <button type="button" class="btn btn-primary">Save</button>
-          </div>
-        </div>`
+        <div class="col-md-auto">
+              <div class="row" id='userpass'>
+                <div class="col">
+                    <label for="aussiebb_username" class="form-label">Username:</label>
+                    <input type="text" size="50" class="form-control" id="aussiebb_username">
+                    <label for="aussiebb_password" class="form-label">Password:</label>
+                    <input type="password" size="50" class="form-control" id="aussiebb_password">
+                </div>
+              </div>
+              <div class="row pt-3" id='saveuserpassfirst'>
+                <div class="col">
+                    <button type="button" class="form-control btn btn-sm btn-outline-success">Save</button>
+                </div>
+              </div>
+        </div>`;
     $("#datechooser").html(userpass);
-    $("#saveuserpass").click(function() {
+    var colour = getCookie('colour');
+    if (colour === 'dark') {
+      $('input[type=text]').addClass("dark-input");
+      $('input[type=password]').addClass("dark-input");
+    };
+    $("#saveuserpassfirst").click(function() {
         $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
         .done(function() {
           location.reload();
@@ -171,12 +209,6 @@ function hello(response) {
 }
 
 $(document).ready(function() {
-    var colour = getCookie('colour');
-    if (colour === 'dark') {
-      $("#jumbotron").addClass("dark-mode");
-      var element = document.body;
-      element.classList.add("dark-mode");
-    }
     var proto = window.location.protocol;
     var port = window.location.port;
     var hostname = window.location.hostname;
@@ -185,6 +217,25 @@ $(document).ready(function() {
 
     var aussiebb_username = $.getJSON({url: url+'/settings?key=aussiebb_username'})
       .done(hello);
+
+    var colour = getCookie('colour');
+    if (colour === 'dark') {
+      $("#cadence").addClass("dark-input");
+      $('input[type=text]').addClass("dark-input");
+      $('input[type=password]').addClass("dark-input");
+      $("#modalcontent").addClass("dark-mode");
+      var element = document.body;
+      element.classList.add("dark-mode");
+      $("#lighttheme").remove();
+      $("#darktheme").remove();
+      qelem = loadCss("https://code.jquery.com/ui/1.13.1/themes/mint-choc/jquery-ui.css","darktheme");
+      document.getElementsByTagName("head")[0].appendChild(qelem);
+    } else {
+      $("#lighttheme").remove();
+      $("#darktheme").remove();
+      qelem = loadCss("https://cdn.jsdelivr.net/npm/jquery-ui-dist@1.13.1/jquery-ui.min.css","lighttheme");
+      document.getElementsByTagName("head")[0].appendChild(qelem);
+    };
 
     $.getJSON({url: url+'/settings?key=cadence'})
       .done(function(data) {
@@ -199,35 +250,18 @@ $(document).ready(function() {
         $.post(url+"/settings", data="cadence="+$("#cadence").val())
     });
 
-    $("#updateuserpass").click(function() {
-        var userpass = `
-            <div class="row">
-              <div class="col-med px-lg-2">
-                Please enter your Aussie Broadband username and password to get started:
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-med px-lg-2">
-                Username: <input type="text" id="aussiebb_username">
-              </div>
-              <div class="col-med px-lg-2">
-                Password: <input type="password" id="aussiebb_password">
-              </div>
-              <div class="col-med px-lg-2" id="saveuserpass">
-                <button type="button" class="btn btn-primary">Save</button>
-              </div>
-            </div>`
-        $("#updateuserpassbox").html(userpass);
-        $("#saveuserpass").click(function() {
-            $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
-            .done(function() {
-              $("#updateuserpassbox").hide();
-            });
-        });        
-    });
+    $("#saveuserpass").click(function() {
+        $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
+        .done(function() {
+          $("#ConfigurationModal").modal('hide');
+        });
+    });        
 });
 
 function renderChart(data) {
+
+    $("#combinedChart").show();
+
     if (combinedChart) {
       var i;
       for (i = 0; i < combinedChart.data.datasets.length; i++) {
@@ -282,21 +316,24 @@ function renderChart(data) {
                 ]
             },
             options: {
+                plugins: {
+                  legend: { position: 'bottom' }
+                },
                 scales: {
-                    xAxes: [{
-                        type: 'time'
-                    }],
-                    yAxes: [{
-                        scaleLabel: {
+                    xAxis: {
+                      type: 'time',
+                      grid: { color: 'rgba(100, 100, 100, 1)'},
+                    },
+                    yAxis: {
+                        grid: { color: 'rgba(100, 100, 100, 1)'},
+                        title: {
                             display: true,
-                            labelString: 'kbps'
+                            text: 'kbps'
                         },
-                        ticks: {
-                            beginAtZero: true,
-                        }
-                    }]
+                        beginAtZero: true
+                    }
                 }
-            }
+            },
         });
     }
 }
