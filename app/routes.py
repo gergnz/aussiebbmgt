@@ -19,9 +19,9 @@ class SpeedTestResults(Resource):
         fromdate = fromdate_raw.isoformat()
         todate = datetime.datetime.now().isoformat()
         if 'fromdate' in request.args:
-            fromdate = request.args['fromdate']
+            fromdate = unquote(request.args['fromdate'])
         if 'todate' in request.args:
-            todate = request.args['todate']
+            todate = unquote(request.args['todate'])
         conn = sqlite3.connect('aussiebbmgt.db')
         conn.row_factory = dict_factory
         cursor = conn.cursor()
