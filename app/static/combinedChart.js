@@ -1,3 +1,12 @@
+loadCss = function(filename,id) {
+    var elem=document.createElement("link");
+    elem.id=id;
+    elem.rel="stylesheet";
+    elem.type="text/css";
+    elem.href=filename;
+    return elem;
+}
+
 function toggledark() {
   var colour = getCookie("colour");
   if (colour === "dark") {
@@ -8,6 +17,10 @@ function toggledark() {
     $("#modalcontent").removeClass("dark-mode");
     var element = document.body;
     element.classList.remove("dark-mode");
+    $("#lighttheme").remove();
+    $("#darktheme").remove();
+    qelem = loadCss("https://cdn.jsdelivr.net/npm/jquery-ui-dist@1.13.1/jquery-ui.min.css","lighttheme");
+    document.getElementsByTagName("head")[0].appendChild(qelem);
   } else {
     document.cookie = "colour=dark";
     $("#cadence").addClass("dark-input");
@@ -16,6 +29,10 @@ function toggledark() {
     $("#modalcontent").addClass("dark-mode");
     var element = document.body;
     element.classList.add("dark-mode");
+    $("#lighttheme").remove();
+    $("#darktheme").remove();
+    qelem = loadCss("https://code.jquery.com/ui/1.13.1/themes/mint-choc/jquery-ui.css","darktheme");
+    document.getElementsByTagName("head")[0].appendChild(qelem);
   }
 }
 
@@ -209,6 +226,15 @@ $(document).ready(function() {
       $("#modalcontent").addClass("dark-mode");
       var element = document.body;
       element.classList.add("dark-mode");
+      $("#lighttheme").remove();
+      $("#darktheme").remove();
+      qelem = loadCss("https://code.jquery.com/ui/1.13.1/themes/mint-choc/jquery-ui.css","darktheme");
+      document.getElementsByTagName("head")[0].appendChild(qelem);
+    } else {
+      $("#lighttheme").remove();
+      $("#darktheme").remove();
+      qelem = loadCss("https://cdn.jsdelivr.net/npm/jquery-ui-dist@1.13.1/jquery-ui.min.css","lighttheme");
+      document.getElementsByTagName("head")[0].appendChild(qelem);
     };
 
     $.getJSON({url: url+'/settings?key=cadence'})
