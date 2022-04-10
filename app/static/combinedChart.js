@@ -2,21 +2,17 @@ function toggledark() {
   var colour = getCookie("colour");
   if (colour === "dark") {
     document.cookie = "colour=light";
-    $("#fromdatepicker").removeClass("dark-input");
-    $("#todatepicker").removeClass("dark-input");
     $("#cadence").removeClass("dark-input");
-    $("#aussiebb_username").removeClass("dark-input");
-    $("#aussiebb_password").removeClass("dark-input");
+    $('input[type=text]').removeClass("dark-input");
+    $('input[type=password]').removeClass("dark-input");
     $("#modalcontent").removeClass("dark-mode");
     var element = document.body;
     element.classList.remove("dark-mode");
   } else {
     document.cookie = "colour=dark";
-    $("#fromdatepicker").addClass("dark-input");
-    $("#todatepicker").addClass("dark-input");
     $("#cadence").addClass("dark-input");
-    $("#aussiebb_username").addClass("dark-input");
-    $("#aussiebb_password").addClass("dark-input");
+    $('input[type=text]').addClass("dark-input");
+    $('input[type=password]').addClass("dark-input");
     $("#modalcontent").addClass("dark-mode");
     var element = document.body;
     element.classList.add("dark-mode");
@@ -42,15 +38,20 @@ var combinedChart;
 
 function getChartData(url, fromdate = '', todate = '') {
     var speedurl = url + "/speedtestresults";
+    var query = {};
     if (fromdate !== '') {
-        speedurl = speedurl + "?fromdate=" + fromdate;
+        query["fromdate"] = fromdate;
     }
     if (todate !== '') {
-        speedurl = speedurl + "&todate=" + todate;
+        query["todate"] = todate;
     }
-    $("#loadingMessage").html('<img src="/static/giphy.gif" alt="" srcset="">');
+
+    var imgheight = $( document ).width() / 3;
+
+    $("#loadingMessage").html('<img src="/static/giphy.gif" height="'+imgheight+'" alt="" srcset="">');
     $.getJSON({
         url: speedurl,
+        data: query,
         success: function(result) {
             var data = [];
             var up = [];
@@ -70,21 +71,24 @@ function getChartData(url, fromdate = '', todate = '') {
             getnextChartData(url, data, fromdate, todate);
         },
         error: function(err) {
-            $("#loadingSpeedMessage").html("Error");
+            $("#combinedChart").hide();
+            $("#loadingMessage").html('<h3 class="display-1 text-danger text-left">Error!!!!<br>Something went wrong!</h3>');
         }
     });
 }
 
 function getnextChartData(url, speeddata, fromdate = '', todate = '') {
     var dpuurl = url + "/dputestresults";
+    var query = {};
     if (fromdate !== '') {
-        dpuurl = dpuurl + "?fromdate=" + fromdate;
+        query["fromdate"] = fromdate;
     }
     if (todate !== '') {
-        dpuurl = dpuurl + "&todate=" + todate;
+        query["todate"] = todate;
     }
     $.getJSON({
         url: dpuurl,
+        data: query,
         success: function(result) {
             $("#loadingMessage").html("");
             var data = speeddata;
@@ -105,7 +109,8 @@ function getnextChartData(url, speeddata, fromdate = '', todate = '') {
             renderChart(data);
         },
         error: function(err) {
-            $("#loadingMessage").html("Error");
+            $("#combinedChart").hide();
+            $("#loadingMessage").html('<h3 class="display-1 text-danger text-left">Error!!!!<br>Something went wrong!</h3>');
         }
     });
 }
@@ -145,8 +150,8 @@ function hello(response) {
         $("#todatepicker").datepicker({ dateFormat: "dd/mm/yy", minDate: "-12M", maxDate: "+0D" });
     });
 
-    $("#todatepicker").change(function() {getdata(url, fromdate, todate)});
-    $("#fromdatepicker").change(function() {getdata(url, fromdate, todate)});
+    $("#todatepicker").change(function() {$("#combinedChart").hide(); getdata(url, fromdate, todate)});
+    $("#fromdatepicker").change(function() {$("#combinedChart").hide(); getdata(url, fromdate, todate)});
 
     setInterval(function(){
       getdata(url, fromdate, todate)
@@ -172,6 +177,11 @@ function hello(response) {
               </div>
         </div>`;
     $("#datechooser").html(userpass);
+    var colour = getCookie('colour');
+    if (colour === 'dark') {
+      $('input[type=text]').addClass("dark-input");
+      $('input[type=password]').addClass("dark-input");
+    };
     $("#saveuserpassfirst").click(function() {
         $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
         .done(function() {
@@ -193,15 +203,13 @@ $(document).ready(function() {
 
     var colour = getCookie('colour');
     if (colour === 'dark') {
-      $("#fromdatepicker").addClass("dark-input");
-      $("#todatepicker").addClass("dark-input");
       $("#cadence").addClass("dark-input");
-      $("#aussiebb_username").addClass("dark-input");
-      $("#aussiebb_password").addClass("dark-input");
+      $('input[type=text]').addClass("dark-input");
+      $('input[type=password]').addClass("dark-input");
       $("#modalcontent").addClass("dark-mode");
       var element = document.body;
       element.classList.add("dark-mode");
-    }
+    };
 
     $.getJSON({url: url+'/settings?key=cadence'})
       .done(function(data) {
@@ -219,12 +227,15 @@ $(document).ready(function() {
     $("#saveuserpass").click(function() {
         $.post(url+"/settings", data="aussiebb_username="+$("#aussiebb_username").val()+"&aussiebb_password="+encodeURIComponent($("#aussiebb_password").val()))
         .done(function() {
-          $("#ConfigurationModal").hide();
+          $("#ConfigurationModal").modal('hide');
         });
     });        
 });
 
 function renderChart(data) {
+
+    $("#combinedChart").show();
+
     if (combinedChart) {
       var i;
       for (i = 0; i < combinedChart.data.datasets.length; i++) {
