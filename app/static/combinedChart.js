@@ -246,6 +246,26 @@ $(document).ready(function() {
       }
     });
 
+    $.getJSON({url: url+'/settings?key=fttcsyncmonitor'})
+      .done(function(data){
+        var state = true;
+        if (data.length == 1) {
+          if (data[0].value == 0) {
+            state = false;
+          }
+        }
+        $("#fttctoggle").prop('checked', state);
+      });
+
+    $("#fttctoggle").change(function(){
+      if($(this).is(":checked")) {
+        newfttcsyncstate=1;
+      } else {
+        newfttcsyncstate=0;
+      }
+      $.post(url+"/settings", data="fttcsyncmonitor="+newfttcsyncstate)
+    })
+
     $("#configuration").change(function() {
         $.post(url+"/settings", data="cadence="+$("#cadence").val())
     });

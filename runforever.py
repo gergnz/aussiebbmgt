@@ -59,6 +59,13 @@ def getsettings():
     # read in username and password
     _settings['username'] = runsql("select value from settings where key='aussiebb_username'")[0][0]
     _settings['password'] = runsql("select value from settings where key='aussiebb_password'")[0][0]
+
+    # read in the fttcsyncmonitor 1/enabled by default
+    try:
+        _settings['fttcsyncmonitor'] = runsql("select value from settings where key='fttcsyncmonitor'")[0][0]
+    except: #pylint: disable=bare-except
+        _settings['fttcsyncmonitor'] = 1
+
     return _settings
 
 
@@ -66,28 +73,31 @@ def runtests(): #pylint: disable=too-many-locals
     """Run the dpu port status and speed tests"""
 
     _settings = getsettings()
-    abbportal = portal.AussiePortal(
-            _settings['username'],
-            _settings['password'],
-            debug=_DEBUG)
 
-    customer = abbportal.customer()
+    # DPU Port Status / FttC Sync Speed
+    if _settings['fttcsyncmonitor'] == 1:
+        abbportal = portal.AussiePortal(
+                _settings['username'],
+                _settings['password'],
+                debug=_DEBUG)
 
-    services = []
-    for service_type in customer['services']:
-        for service in customer['services'][service_type]:
-            service_id = service['service_id']
-            services.append((service_type, service_id))
+        customer = abbportal.customer()
 
-    dpu = abbportal.dpuportstatus(service_id)
-    logging.info(dpu)
-    status = dpu['status']
-    testid = dpu['id']
-    while status == "InProgress":
-        time.sleep(30)
-        testresult = abbportal.testresult(service_id, testid)
-        status = testresult['status']
-        logging.info(testresult)
+        services = []
+        for service_type in customer['services']:
+            for service in customer['services'][service_type]:
+                service_id = service['service_id']
+                services.append((service_type, service_id))
+
+        dpu = abbportal.dpuportstatus(service_id)
+        logging.info(dpu)
+        status = dpu['status']
+        testid = dpu['id']
+        while status == "InProgress":
+            time.sleep(30)
+            testresult = abbportal.testresult(service_id, testid)
+            status = testresult['status']
+            logging.info(testresult)
 
     # run the speed test
     try:
@@ -143,43 +153,44 @@ def saveresults():
 
     customer = abbportal.customer()
 
-    services = []
-    for service_type in customer['services']:
-        for service in customer['services'][service_type]:
-            service_id = service['service_id']
-            services.append((service_type, service_id))
+    if _settings['fttcsyncmonitor'] == 1:
+        services = []
+        for service_type in customer['services']:
+            for service in customer['services'][service_type]:
+                service_id = service['service_id']
+                services.append((service_type, service_id))
 
-    # get and populate all the line sync / dpu port status test results
-    tests = abbportal.tests(service_id)
-    results = runsql('select id from dpuportstatusresults')
-    ids = []
-    for i in results:
-        ids.append(i[0])
+        # get and populate all the line sync / dpu port status test results
+        tests = abbportal.tests(service_id)
+        results = runsql('select id from dpuportstatusresults')
+        ids = []
+        for i in results:
+            ids.append(i[0])
 
-    for result in tests:
-        if (result['type']) == 'DPU Port Status':
-            if result['id'] not in ids:
-                output = abbportal.testresult(service_id, result['id'])
-                linerate = output['output']['accessLineRate']
-                if linerate in ('N/A', "Not Found", None):
-                    lineup = 0
-                    linedown = 0
-                else:
-                    linedown = linerate.split('/')[0].replace('>','')
-                    lineup = linerate.split('/')[1].split(' ')[0]
-                # pylint: disable=line-too-long
-                insertline = ("insert into dpuportstatusresults values ('%s', '%s', '%s', '%s', '%s', %s, %s, '%s', '%s')"
-                # pylint: enable=line-too-long
-                        % (output['id'],
-                           output['result'],
-                           output['output']['syncState'],
-                           output['output']['operationalState'],
-                           output['output']['reversePowerState'],
-                           lineup,linedown,
-                           output['completed_at'],
-                           output['status']))
-                logging.info(insertline)
-                runsql(insertline)
+        for result in tests:
+            if (result['type']) == 'DPU Port Status':
+                if result['id'] not in ids:
+                    output = abbportal.testresult(service_id, result['id'])
+                    linerate = output['output']['accessLineRate']
+                    if linerate in ('N/A', "Not Found", None):
+                        lineup = 0
+                        linedown = 0
+                    else:
+                        linedown = linerate.split('/')[0].replace('>','')
+                        lineup = linerate.split('/')[1].split(' ')[0]
+                    # pylint: disable=line-too-long
+                    insertline = ("insert into dpuportstatusresults values ('%s', '%s', '%s', '%s', '%s', %s, %s, '%s', '%s')"
+                    # pylint: enable=line-too-long
+                            % (output['id'],
+                               output['result'],
+                               output['output']['syncState'],
+                               output['output']['operationalState'],
+                               output['output']['reversePowerState'],
+                               lineup,linedown,
+                               output['completed_at'],
+                               output['status']))
+                    logging.info(insertline)
+                    runsql(insertline)
 
     # get and populate all the spped test results
     tests = abbportal.speedtestresults(service_id)
