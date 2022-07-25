@@ -153,12 +153,13 @@ def saveresults():
 
     customer = abbportal.customer()
 
+    services = []
+    for service_type in customer['services']:
+        for service in customer['services'][service_type]:
+            service_id = service['service_id']
+            services.append((service_type, service_id))
+
     if _settings['fttcsyncmonitor'] == 1:
-        services = []
-        for service_type in customer['services']:
-            for service in customer['services'][service_type]:
-                service_id = service['service_id']
-                services.append((service_type, service_id))
 
         # get and populate all the line sync / dpu port status test results
         tests = abbportal.tests(service_id)
